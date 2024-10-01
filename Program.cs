@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 class Program
@@ -43,7 +44,7 @@ class Program
         }
     }
 
-    static void MergeFiles(List<string> inputFiles, string outputFile)
+    static void MergeFilesWithHeap(List<string> inputFiles, string outputFile)
     {
         using (StreamWriter outFile = new StreamWriter(outputFile))
         {
@@ -88,6 +89,8 @@ class Program
 
         using (StreamReader inputFile = new StreamReader(filePath))
         {
+            List<Task> sortTasks = new List<Task>();
+
             while (true)
             {
                 int[] numbers = new int[chunkSize];
@@ -110,20 +113,26 @@ class Program
 
                 int[] sortedNumbers = new int[count];
                 Array.Copy(numbers, sortedNumbers, count);
-                Array.Sort(sortedNumbers);
-
                 string tempFile = Path.Combine(tempDir, Path.GetRandomFileName());
                 tempFiles.Add(tempFile);
-                using (StreamWriter writer = new StreamWriter(tempFile))
+
+                sortTasks.Add(Task.Run(() =>
                 {
-                    for (int i = 0; i < count; i++)
+                    Array.Sort(sortedNumbers);
+                    using (StreamWriter writer = new StreamWriter(tempFile))
                     {
-                        writer.WriteLine(sortedNumbers[i]);
+                        foreach (int number in sortedNumbers)
+                        {
+                            writer.WriteLine(number);
+                        }
                     }
-                }
+                }));
             }
+
+            Task.WaitAll(sortTasks.ToArray());
         }
-        MergeFiles(tempFiles, outputFilePath);
+
+        MergeFilesWithHeap(tempFiles, outputFilePath);
 
         foreach (var tempFile in tempFiles)
         {

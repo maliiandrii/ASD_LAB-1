@@ -11,11 +11,7 @@ class Program
         Console.Write("Enter the size of the file in MB: ");
         int fileSizeMB = int.Parse(Console.ReadLine());
 
-        Console.Write("Enter the memory limit in MB: ");
-        int memoryLimitMB = int.Parse(Console.ReadLine());
-
-        Console.Write("Enter the chunk size in MB: ");
-        int chunkSizeMB = int.Parse(Console.ReadLine());
+        int chunkSizeMB = 100;
 
         string filePath = "large_file.txt";
         string outputFilePath = "sorted_large_file.txt";
@@ -35,14 +31,22 @@ class Program
     static void GenerateRandomFile(string filePath, int sizeMB)
     {
         Random random = new Random();
+        long totalLines = sizeMB * 1024L * 1024L / 8L;
+
         using (StreamWriter writer = new StreamWriter(filePath))
         {
-            for (int i = 0; i < sizeMB * 1024 * 1024 / 8; i++)
+            for (long i = 0; i < totalLines; i++)
             {
                 writer.WriteLine(random.Next(0, 1000000));
+
+                if (i % 1000000 == 0)
+                {
+                    writer.Flush();
+                }
             }
         }
     }
+
 
     static void MergeFilesWithHeap(List<string> inputFiles, string outputFile)
     {
